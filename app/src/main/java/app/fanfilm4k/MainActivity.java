@@ -13,6 +13,10 @@ import android.webkit.CookieManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
+import io.github.edsuns.adfilter.AdFilter;
+import io.github.edsuns.adfilter.Filter;
+import io.github.edsuns.adfilter.FilterViewModel;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -30,6 +34,7 @@ public class MainActivity extends Activity {
 
     private FrameLayout root;
     private WebView web;
+    private AdFilter adFilter;
     private View customView;
     private WebChromeClient.CustomViewCallback customCallback;
 
@@ -43,6 +48,11 @@ public class MainActivity extends Activity {
         web = new WebView(this);
         root.addView(web, new FrameLayout.LayoutParams(MATCH, MATCH));
         setContentView(root);
+
+        // Ad blocking engine (EasyList + RU AdList + privacy protection).
+        adFilter = AdFilter.Companion.get(this);
+        adFilter.setupWebView(web);
+        installAdFiltersIfNeeded();
 
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
@@ -59,6 +69,26 @@ public class MainActivity extends Activity {
         cookies.setAcceptThirdPartyCookies(web, true);
 
         web.setWebViewClient(new WebViewClient() {
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                try {
+                    return adFilter.shouldIntercept(view, request).getResourceResponse();
+                } catch (Exception ignored) {
+                    // Fail open: a filter error must never break the site or video playback.
+                    return null;
+                }
+            }
+
+            @Override
+            public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
+                try {
+                    adFilter.performScript(view, url);
+                } catch (Exception ignored) {
+                    // Cosmetic/scriptlet filtering is optional; keep the page usable.
+                }
+            }
+
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 if (!request.isForMainFrame()) {
@@ -108,6 +138,27 @@ public class MainActivity extends Activity {
             web.restoreState(savedInstanceState);
         } else {
             web.loadUrl(START_URL);
+        }
+    }
+
+    private void installAdFiltersIfNeeded() {
+        FilterViewModel filters = adFilter.getViewModel();
+
+        // The engine keeps subscriptions locally and updates them through WorkManager.
+        // These are standard public filter subscriptions; no site/player domains are blocked wholesale.
+        if (!adFilter.getHasInstallation()) {
+            Filter ruAndInternational = filters.addFilter(
+                    "RU AdList + EasyList",
+                    "https://easylist-downloads.adblockplus.org/ruadlist+easylist.txt"
+            );
+            Filter privacy = filters.addFilter(
+                    "EasyPrivacy",
+                    "https://easylist.to/easylist/easyprivacy.txt"
+            );
+
+            filters.getIsEnabled().setValue(true);
+            filters.download(ruAndInternational.getId());
+            filters.download(privacy.getId());
         }
     }
 
