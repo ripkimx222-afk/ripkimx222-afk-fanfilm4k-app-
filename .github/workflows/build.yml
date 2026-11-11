@@ -18,7 +18,8 @@ jobs:
 
       - name: Install Android API 37
         run: |
-          SDKMANAGER="$ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager"
+          SDKMANAGER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools" -type f -name sdkmanager | head -n 1)"
+          test -n "$SDKMANAGER"
           yes | "$SDKMANAGER" --licenses
           "$SDKMANAGER" "platforms;android-37"
 
