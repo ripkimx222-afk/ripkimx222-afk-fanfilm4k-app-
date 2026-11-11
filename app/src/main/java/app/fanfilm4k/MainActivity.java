@@ -1,3 +1,4 @@
+
 package app.fanfilm4k;
 
 import android.annotation.SuppressLint;
@@ -94,7 +95,7 @@ public class MainActivity extends Activity {
                 customCallback = callback;
                 web.setVisibility(View.GONE);
                 root.addView(view, new FrameLayout.LayoutParams(MATCH, MATCH));
-                setImmersive(true);
+                applyImmersiveMode(true);
             }
 
             @Override
@@ -133,11 +134,11 @@ public class MainActivity extends Activity {
             customCallback = null;
         }
         web.setVisibility(View.VISIBLE);
-        setImmersive(false);
+        applyImmersiveMode(false);
     }
 
     @SuppressWarnings("deprecation")
-    private void setImmersive(boolean on) {
+    private void applyImmersiveMode(boolean on) {
         View decor = getWindow().getDecorView();
         if (on) {
             decor.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
