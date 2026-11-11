@@ -156,7 +156,7 @@ public class MainActivity extends Activity {
                     "https://easylist.to/easylist/easyprivacy.txt"
             );
 
-            filters.getIsEnabled().setValue(true);
+            filters.isEnabled().setValue(true);
             filters.download(ruAndInternational.getId());
             filters.download(privacy.getId());
         }
