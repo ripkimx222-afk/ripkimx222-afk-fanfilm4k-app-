@@ -16,10 +16,11 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - uses: android-actions/setup-android@v3
-
       - name: Install Android API 37
-        run: sdkmanager "platforms;android-37"
+        run: |
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses
+          "$SDKMANAGER" "platforms;android-37"
 
       - uses: gradle/actions/setup-gradle@v4
         with:
