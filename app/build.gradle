@@ -26,4 +26,6 @@ android {
     }
 }
 
-// No third-party dependencies: plain android.app.Activity + android.webkit.WebView.
+dependencies {
+    implementation 'com.github.Edsuns.AdblockAndroid:ad-filter:1.0'
+}
